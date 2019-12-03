@@ -57,6 +57,10 @@ def filt_resp(b,a,fs):
     plt.xlabel('Frequency [Hz]')
     plt.xlim(0,np.pi)
 
+def notch_filt(w0,Q,fs):
+    return sg.iirnotch(w0,Q,fs)
+
+
 def bandpass(fs):
     r1 = 47e3
     r2 = 1e6
@@ -87,8 +91,8 @@ def bandpass(fs):
     
     #Discrete conversion
     w_d = np.linspace(.1*2*math.pi,300*2*math.pi,5000)
-    num_d = [.6307, -.6307]
-    den_d = [1, -1.395, .3967]
+    num_d = [.3871, -.3871]
+    den_d = [1, -1.629, .6298]
     h_s_d = sg.TransferFunction(num_d,den_d,dt=1/fs)
     w_d,mag_d,phase_d = sg.dbode(h_s_d,w=w_d/fs)
     #z,p,k = sg.tf2zpk(num,den)
@@ -175,14 +179,23 @@ def zplane(b,a,filename=None):
 
 
 
-
-file_ecg = "/Users/pproctor/Documents/PSU/ECE522/project/default_ecg.mat"
-file_x = "/Users/pproctor/Documents/PSU/ECE522/project/default_ecg_x.mat"
-Fs = 1000
+#For mac
+#file_ecg = "/Users/pproctor/Documents/PSU/ECE522/project/default_ecg.mat"
+#file_x = "/Users/pproctor/Documents/PSU/ECE522/project/default_ecg_x.mat"
+#For Linux
+file_ecg = "/u/pproctor/Documents/psu_courses/ECE522/ekg_project/default_ecg.mat"
+file_x = "/u/pproctor/Documents/psu_courses/ECE522/ekg_project/default_ecg_x.mat"
+Fs = 2000
 
 
 data, t = load_mat(file_ecg,file_x)
+data = data - np.mean(data)
+plt.figure(1)
+plt.title("EKG")
+plt.plot(t,data)
+
 dft(data,Fs)
+
 
 H_d,b_d,a_d = bandpass(Fs)
 
@@ -190,12 +203,19 @@ H_d,b_d,a_d = bandpass(Fs)
 plt.show()
 
 sig_filt = sg.lfilter(b_d,a_d,data)
+#sig_filt = sg.filtfilt(b_d,a_d,data)
+#sig_filt = sig_filt - np.mean(sig_filt)
 dft(sig_filt,Fs)
+
 plt.figure(8)
 plt.plot(t,sig_filt,c='orange')
 plt.plot(t,data)
 plt.show()
 
+#sig_filt_con = sg.lfilter(b_d,a_d,sg.unit_impulse(90))
+#plt.figure(9)
+#plt.plot(t,sig_filt_con)
+#plt.show()
 
 
 
